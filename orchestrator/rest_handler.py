@@ -1,23 +1,23 @@
 import uvicorn
 from fastapi import FastAPI
 
-from orchestrator.app import get_graph, get_topic, new_course
+from orchestrator.app import create_new_course, get_graphs, get_topic
 from orchestrator.config import backend_config
 from orchestrator.dto import (
-    GetGraphRequest,
-    GetGraphResponse,
+    CreateCourseRequest,
+    CreateCourseResponse,
+    GetGraphsRequest,
+    GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
-    NewCourseRequest,
-    NewCourseResponse,
 )
 
 app = FastAPI()
 
 
-@app.get("/get_graph", response_model=GetGraphResponse)
-async def get_graph_api(request: GetGraphRequest):
-    return await get_graph(request)
+@app.get("/get_graphs", response_model=GetGraphsResponse)
+async def get_graph_api(request: GetGraphsRequest):
+    return await get_graphs(request)
 
 
 @app.get("/get_topic", response_model=GetTopicResponse)
@@ -25,9 +25,9 @@ async def get_topic_api(request: GetTopicRequest):
     return await get_topic(request)
 
 
-@app.post("/new_course", response_model=NewCourseResponse)
-async def new_course_api(request: NewCourseRequest):
-    return await new_course(request)
+@app.post("/create_new_course", response_model=CreateCourseResponse)
+async def new_course_api(request: CreateCourseRequest):
+    return await create_new_course(request)
 
 
 if __name__ == "__main__":

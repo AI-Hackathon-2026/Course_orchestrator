@@ -1,65 +1,48 @@
-from config import graphConfig
-from dto import (
-    GetGraphRequest,
-    GetGraphResponse,
+import uuid
+
+from orchestrator.data_base import data_base
+from orchestrator.default_graph import graph_nodes
+from orchestrator.dto import (
+    CreateCourseRequest,
+    CreateCourseResponse,
+    GetGraphsRequest,
+    GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
-    NewCourseRequest,
-    NewCourseResponse,
 )
-from graph import Graph, Topic
-
-graphs_counter = 0
-db: list[Graph] = []
+from orchestrator.graph import Graph, Topic
 
 
-def get_graph_db(graphs_id: list[int]) -> list[Graph] | None:
-    graphs = []
-    for graph in db:
-        if graph.graph_id in graphs_id:
-            graphs.append(graph)
-    return graphs
-
-
-def get_topic_db(topic_id: int, graph_id) -> Topic | None:
-    for graph in db:
-        if graph.graph_id == graph_id:
-            for topic in graph.topics:
-                if topic[0].topic_id == topic_id:
-                    return topic[0]
-    return None
-
-
-def new_course_db() -> int | str:
-    global graphs_counter
-    topics = [(Topic(**topic), False) for topic in graphConfig.topics]
-    new_graph = Graph(graph_id=graphs_counter, title="Алгоритмы", topics=topics)
-    graphs_counter += 1
-    db.append(new_graph)
-    return 200
-
-
-async def get_graph(request: GetGraphRequest) -> GetGraphResponse:
-    graphs_ids = [graph.graph_id for graph in GetGraphRequest.message]
-    graphs = get_graph_db(graphs_ids)
-    if graphs is None:
-        return GetGraphResponse(
-            request_id=request.request_id, message="There are no graphs with such IDs"
-        )
+async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
+    graphs = data_base.get_graphs(
+        [graph_item.graph_id for graph_item in request.message]
+    )
+    if graphs:
+        return GetGraphsResponse(request_id=request.request_id, message=graphs)
     else:
-        return GetGraphResponse(request_id=request.request_id, message=graphs)
+        return GetGraphsResponse(
+            request_id=request.request_id, message="There are no graphs with such ids"
+        )
 
 
 async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
-    topic = get_topic_db(request.message.topic_id, request.message.graph_id)
-    if topic is None:
-        return GetTopicResponse(
-            request_id=request.request_id, message="There are no topic with such ID"
-        )
-    else:
+    topic: Topic = data_base.get_topic_from_node(
+        node_id=request.message.topic_id, graph_id=request.message.graph_id
+    )
+    if topic:
         return GetTopicResponse(request_id=request.request_id, message=topic)
+    else:
+        return GetTopicResponse(
+            request_id=request.request_id, message="There are no such topic"
+        )
 
 
-async def new_course(request: NewCourseRequest) -> NewCourseResponse:
-    status = new_course_db()
-    return NewCourseResponse(request_id=request.request_id, message=status)
+async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
+    new_course = Graph(
+        **{
+            "graph_id": str(uuid.uuid4()),
+            "nodes": [node.model_dump() for node in graph_nodes],
+        }
+    )
+    data_base.add_graph(new_course)
+    return CreateCourseResponse(request_id=request.request_id, message=200)

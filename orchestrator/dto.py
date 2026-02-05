@@ -4,20 +4,20 @@ from orchestrator.graph import Graph, Topic
 
 
 class GraphItem(BaseModel):
-    graph_id: int
+    graph_id: str
 
 
 class TopicItem(BaseModel):
-    graph_id: int
+    graph_id: str
     topic_id: int
 
 
-class GetGraphRequest(BaseModel):
+class GetGraphsRequest(BaseModel):
     request_id: int
     message: list[GraphItem]
 
 
-class GetGraphResponse(BaseModel):
+class GetGraphsResponse(BaseModel):
     request_id: int
     message: list[Graph] | str
 
@@ -36,25 +36,17 @@ class BdLinksItem(BaseModel):
     link_id: int
 
 
-class NewCourseItem(BaseModel):
+class CreateCourseItem(BaseModel):
     username: str
     requirements: str
     links: list[BdLinksItem]
 
 
-class NewCourseRequest(BaseModel):
+class CreateCourseRequest(BaseModel):
     request_id: int
-    message: NewCourseItem
+    message: CreateCourseItem
 
 
-class NewCourseResponse(BaseModel):
+class CreateCourseResponse(BaseModel):
     request_id: int
     message: int | str
-
-
-class ChangeGraphRequest(BaseModel):
-    pass
-
-
-class ChangeGraphResponse(BaseModel):
-    pass
