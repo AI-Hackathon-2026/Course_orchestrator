@@ -33,7 +33,7 @@ async def new_course_api(request: CreateCourseRequest):
 if __name__ == "__main__":
     uvicorn.run(
         "rest_handler:app",
-        host=backend_config.host,
-        port=backend_config.port,
-        reload=backend_config.reload,
+        host=backend_config.HOST,
+        port=backend_config.PORT,
+        reload=backend_config.RELOAD,
     )

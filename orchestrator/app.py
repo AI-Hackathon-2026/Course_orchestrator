@@ -1,5 +1,9 @@
+import os
 import uuid
 
+from langfuse import Langfuse, observe
+
+from orchestrator.config import settings
 from orchestrator.data_base import data_base
 from orchestrator.default_graph import graph_nodes
 from orchestrator.dto import (
@@ -12,7 +16,14 @@ from orchestrator.dto import (
 )
 from orchestrator.graph import Graph, Topic
 
+langfuse = Langfuse(
+    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
+    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
+    host=settings.LANGFUSE_SERVER,
+)
 
+
+@observe(name="get_graphs")
 async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
     graphs = data_base.get_graphs(
         [graph_item.graph_id for graph_item in request.message]
@@ -25,6 +36,7 @@ async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
         )
 
 
+@observe(name="get_topic")
 async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
     topic: Topic = data_base.get_topic_from_node(
         node_id=request.message.topic_id, graph_id=request.message.graph_id
@@ -37,6 +49,7 @@ async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
         )
 
 
+@observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
     new_course = Graph(
         **{
