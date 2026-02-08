@@ -2,40 +2,54 @@ from orchestrator.default_graph import topics
 from orchestrator.graph import Graph, Topic
 
 
-class DataBase:
-    _graphs_db: list[Graph]
-    _topics_db: list[Topic]
-
+class Redis:
     def __init__(self):
-        super().__init__()
         self._graphs_db = []
         self._topics_db = topics
+        # with open("graphs.txt", "w") as file:
+        # file.write('')
+        # with open("topics.txt", "w") as file:
+        # for topic in self._topics_db:
+        # file.write(str(topic) + '\n')
 
-    def get_graphs(self, graphs_ids: list[str]) -> list[Graph] | None:
+    def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
         graphs = []
         for graph in self._graphs_db:
-            if graph.graph_id in graphs_ids:
+            if graph.graph_id in graph_ids:
                 graphs.append(graph)
-        return graphs if len(graphs) == len(graphs_ids) else None
+        return graphs
 
-    def _get_topic(self, topic_id: int) -> Topic | None:
+    def get_topic(self, topic_id) -> Topic | None:
         for topic in self._topics_db:
             if topic.topic_id == topic_id:
                 return topic
         return None
 
+    def add_graph(self, graph: Graph):
+        self._graphs_db.append(graph)
+        # with open("graphs.txt", "a") as file:
+        #   file.write(str(graph) + '\n')
+
+
+class DataBase:
+    def __init__(self):
+        self.redis = Redis()
+
+    def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
+        return self.redis.get_graphs(graph_ids)
+
     def get_topic_from_node(self, node_id: int, graph_id: str) -> Topic | None:
-        graph = self.get_graphs([graph_id])[0]
+        graph = self.redis.get_graphs([graph_id])[0]
         if graph:
-            for node in graph.nodes:
+            node = graph.first_node
+            while node:
                 if node.node_id == node_id:
-                    return self._get_topic(node.topic_id)
+                    return self.redis.get_topic(node.topic_id)
+                node = node.next_node
         return None
 
     def add_graph(self, graph: Graph):
-        self._graphs_db.append(graph)
-        # with open("file.txt", "a") as file:
-        # file.write(str(graph) + '\n')
+        self.redis.add_graph(graph)
 
 
 data_base = DataBase()

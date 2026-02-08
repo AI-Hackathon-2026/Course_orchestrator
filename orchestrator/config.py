@@ -1,15 +1,19 @@
+import os
+
 from pydantic_settings import BaseSettings
 
 
 class BackendConfig(BaseSettings):
     PORT: int = 8067
-    HOST: str = "127.0.0.1"
-    RELOAD: bool = True
+    HOST: str = "0.0.0.0"
+    RELOAD: bool = False
 
 
-class Settings(BaseSettings):
+class LangfuseSettings(BaseSettings):
     LANGFUSE_SERVER: str = "https://cloud.langfuse.com"
+    SECRET_KEY: str = str(os.environ.get("LANGFUSE_SECRET_KEY"))
+    PUBLIC_KEY: str = str(os.environ.get("LANGFUSE_PUBLIC_KEY"))
 
 
 backend_config = BackendConfig()
-settings = Settings()
+langfuse_settings = LangfuseSettings()

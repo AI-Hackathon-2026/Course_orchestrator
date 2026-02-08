@@ -1,25 +1,25 @@
-import os
 import uuid
 
 from langfuse import Langfuse, observe
 
-from orchestrator.config import settings
+from orchestrator.config import langfuse_settings
 from orchestrator.data_base import data_base
-from orchestrator.default_graph import graph_nodes
+from orchestrator.default_graph import create_graph
 from orchestrator.dto import (
     CreateCourseRequest,
     CreateCourseResponse,
+    CreateCourseResponseItem,
     GetGraphsRequest,
     GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
 )
-from orchestrator.graph import Graph, Topic
+from orchestrator.graph import Graph
 
 langfuse = Langfuse(
-    secret_key=os.environ.get("LANGFUSE_SECRET_KEY"),
-    public_key=os.environ.get("LANGFUSE_PUBLIC_KEY"),
-    host=settings.LANGFUSE_SERVER,
+    secret_key=langfuse_settings.SECRET_KEY,
+    public_key=langfuse_settings.PUBLIC_KEY,
+    host=langfuse_settings.LANGFUSE_SERVER,
 )
 
 
@@ -28,34 +28,31 @@ async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
     graphs = data_base.get_graphs(
         [graph_item.graph_id for graph_item in request.message]
     )
-    if graphs:
-        return GetGraphsResponse(request_id=request.request_id, message=graphs)
-    else:
-        return GetGraphsResponse(
-            request_id=request.request_id, message="There are no graphs with such ids"
-        )
+    return GetGraphsResponse(request_id=request.request_id, message=graphs, status="OK")
 
 
 @observe(name="get_topic")
 async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
-    topic: Topic = data_base.get_topic_from_node(
+    topic = data_base.get_topic_from_node(
         node_id=request.message.topic_id, graph_id=request.message.graph_id
     )
-    if topic:
-        return GetTopicResponse(request_id=request.request_id, message=topic)
-    else:
-        return GetTopicResponse(
-            request_id=request.request_id, message="There are no such topic"
-        )
+    return GetTopicResponse(request_id=request.request_id, message=topic, status="OK")
 
 
 @observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
+    first_node = create_graph()
     new_course = Graph(
         **{
             "graph_id": str(uuid.uuid4()),
-            "nodes": [node.model_dump() for node in graph_nodes],
+            "first_node": first_node.model_dump(),
         }
     )
     data_base.add_graph(new_course)
-    return CreateCourseResponse(request_id=request.request_id, message=200)
+    return CreateCourseResponse(
+        request_id=request.request_id,
+        status="OK",
+        message=CreateCourseResponseItem(
+            username=request.message.username, graph_id=new_course.graph_id, code=200
+        ),
+    )
