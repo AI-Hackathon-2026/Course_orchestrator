@@ -11,8 +11,8 @@ class BackendConfig(BaseSettings):
 
 class LangfuseSettings(BaseSettings):
     LANGFUSE_SERVER: str = "https://cloud.langfuse.com"
-    SECRET_KEY: str = str(os.environ.get("LANGFUSE_SECRET_KEY"))
-    PUBLIC_KEY: str = str(os.environ.get("LANGFUSE_PUBLIC_KEY"))
+    SECRET_KEY: str = os.environ.get("LANGFUSE_SECRET_KEY")
+    PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY")
 
 
 backend_config = BackendConfig()

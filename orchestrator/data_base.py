@@ -4,52 +4,42 @@ from orchestrator.graph import Graph, Topic
 
 class Redis:
     def __init__(self):
-        self._graphs_db = []
-        self._topics_db = topics
-        # with open("graphs.txt", "w") as file:
-        # file.write('')
-        # with open("topics.txt", "w") as file:
-        # for topic in self._topics_db:
-        # file.write(str(topic) + '\n')
+        self.redis = {}
+        for topic in topics:
+            self.set(topic.topic_id, topic.model_dump())
 
-    def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
-        graphs = []
-        for graph in self._graphs_db:
-            if graph.graph_id in graph_ids:
-                graphs.append(graph)
-        return graphs
+    def set(self, name: str, value: str | int | dict | list | bool | None):
+        self.redis[name] = value
 
-    def get_topic(self, topic_id) -> Topic | None:
-        for topic in self._topics_db:
-            if topic.topic_id == topic_id:
-                return topic
-        return None
-
-    def add_graph(self, graph: Graph):
-        self._graphs_db.append(graph)
-        # with open("graphs.txt", "a") as file:
-        #   file.write(str(graph) + '\n')
+    def get(self, name: str) -> str | int | dict | list | bool | None:
+        return self.redis.get(name)
 
 
-class DataBase:
+class DataBaseAgent:
     def __init__(self):
         self.redis = Redis()
 
-    def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
-        return self.redis.get_graphs(graph_ids)
+    async def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
+        graphs = []
+        for graph_id in graph_ids:
+            if graph := self.redis.get(graph_id):
+                graphs.append(Graph(**graph))
+        return graphs
 
-    def get_topic_from_node(self, node_id: int, graph_id: str) -> Topic | None:
-        graph = self.redis.get_graphs([graph_id])[0]
+    async def get_topic_from_node(self, node_id: int, graph_id: str) -> Topic | None:
+        graph = self.redis.get(graph_id)
         if graph:
-            node = graph.first_node
+            next_node_id = graph["first_node_id"]
+            node = self.redis.get(next_node_id)
             while node:
-                if node.node_id == node_id:
-                    return self.redis.get_topic(node.topic_id)
-                node = node.next_node
+                if node["node_id"] == node_id:
+                    return self.redis.get(node["topic_id"])
+                next_node_id = node["next_node"]
+                node = self.redis.get(next_node_id)
         return None
 
-    def add_graph(self, graph: Graph):
-        self.redis.add_graph(graph)
+    async def add_graph(self, graph: Graph):
+        self.redis.set(name=graph.graph_id, value=graph.model_dump())
 
 
-data_base = DataBase()
+data_base_agent = DataBaseAgent()
