@@ -1,31 +1,22 @@
-import enum
-
 from langfuse import Langfuse, observe
-
 from orchestrator.config import langfuse_settings
 from orchestrator.data_base import data_base_agent
 from orchestrator.default_graph import create_graph
 from orchestrator.dto import (
     CreateCourseRequest,
     CreateCourseResponse,
-    CreateCourseResponseItem,
+    UsersGraph,
     GetGraphsRequest,
     GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
 )
-
+from orchestrator.dto import ResponseCodes
 langfuse = Langfuse(
     secret_key=langfuse_settings.SECRET_KEY,
     public_key=langfuse_settings.PUBLIC_KEY,
     host=langfuse_settings.LANGFUSE_SERVER,
 )
-
-
-class ResponseCodes(enum.Enum):
-    OK = 200
-    INTERNAL_ERROR = 500
-    BAD_REQUEST = 400
 
 
 @observe(name="get_graphs")
@@ -55,7 +46,7 @@ async def create_new_course(request: CreateCourseRequest) -> CreateCourseRespons
     return CreateCourseResponse(
         request_id=request.request_id,
         status=ResponseCodes.OK.value,
-        message=CreateCourseResponseItem(
+        message=UsersGraph(
             username=request.message.username, graph_id=new_course.graph_id
         ),
     )
