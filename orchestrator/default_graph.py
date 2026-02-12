@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from orchestrator.graph import Graph, GraphNode, Topic
+from orchestrator.graph import GraphNode, Topic
 
 topics: list[Topic] = [
     Topic(
@@ -21,21 +21,21 @@ topics: list[Topic] = [
 ]
 
 
-def create_graph() -> Graph:
+def create_graph() -> list[GraphNode]:
     graph_nodes = [
         GraphNode(
             node_id=str(uuid4()),
             topic_id=topic.topic_id,
             is_studied=False,
             is_major=False,
-            prev_node=None,
-            next_node=None,
+            prev_node_id=None,
+            next_node_id=None,
         )
         for topic in topics
     ]
     for i, node in enumerate(graph_nodes):
         if i != 0:
-            node.prev_node = graph_nodes[i - 1].node_id
+            node.prev_node_id = graph_nodes[i - 1].node_id
         if i != len(graph_nodes) - 1:
-            node.next_node = graph_nodes[i + 1].node_id
-    return Graph(graph_id=str(uuid4()), first_node_id=graph_nodes[0].node_id)
+            node.next_node_id = graph_nodes[i + 1].node_id
+    return graph_nodes

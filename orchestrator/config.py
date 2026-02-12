@@ -14,8 +14,10 @@ class LangfuseSettings(BaseSettings):
     SECRET_KEY: str = os.environ.get("LANGFUSE_SECRET_KEY")
     PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY")
 
-class RedisConfig():
+
+class RedisConfig:
     REDIS_VALUE_TYPE = str | int | float | dict | list | bool | set | None
+
 
 backend_config = BackendConfig()
 langfuse_settings = LangfuseSettings()

@@ -1,6 +1,9 @@
-from orchestrator.default_graph import topics
-from orchestrator.graph import Graph, Topic
+import asyncio
+
 from orchestrator.config import redis_config
+from orchestrator.default_graph import topics
+from orchestrator.graph import Graph, GraphNode, Topic
+
 
 class AsyncRedisClient:
     def __init__(self):
@@ -16,6 +19,7 @@ class AsyncRedisClient:
 class DataBaseAgent:
     def __init__(self):
         self.redis = AsyncRedisClient()
+        asyncio.run(self.add_default_topics())
 
     async def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
         graphs = []
@@ -40,9 +44,12 @@ class DataBaseAgent:
                 node = await self.redis.get(next_node_id)
         return None
 
+    async def add_graph_nodes(self, graph_nodes: list[GraphNode]):
+        for graph_node in graph_nodes:
+            await self.redis.set(graph_node.node_id, graph_node.model_dump())
+
     async def add_graph(self, graph: Graph):
         await self.redis.set(name=graph.graph_id, value=graph.model_dump())
 
 
 data_base_agent = DataBaseAgent()
-data_base_agent.add_default_topics()

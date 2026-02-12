@@ -1,17 +1,22 @@
+import uuid
+
 from langfuse import Langfuse, observe
+
 from orchestrator.config import langfuse_settings
 from orchestrator.data_base import data_base_agent
 from orchestrator.default_graph import create_graph
 from orchestrator.dto import (
     CreateCourseRequest,
     CreateCourseResponse,
-    UsersGraph,
     GetGraphsRequest,
     GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
+    ResponseCodes,
+    UsersGraph,
 )
-from orchestrator.dto import ResponseCodes
+from orchestrator.graph import Graph
+
 langfuse = Langfuse(
     secret_key=langfuse_settings.SECRET_KEY,
     public_key=langfuse_settings.PUBLIC_KEY,
@@ -41,8 +46,12 @@ async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
 
 @observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
-    new_course = create_graph()
+    graph_nodes = create_graph()
+    await data_base_agent.add_graph_nodes(graph_nodes)
+
+    new_course = Graph(graph_id=str(uuid.uuid4()), first_node_id=graph_nodes[0].node_id)
     await data_base_agent.add_graph(new_course)
+
     return CreateCourseResponse(
         request_id=request.request_id,
         status=ResponseCodes.OK,
