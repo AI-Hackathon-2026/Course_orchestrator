@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from orchestrator.graph import GraphNode, Topic
+from orchestrator.graph import GraphNode, Topic, UsersGraphNode
 
 topics: list[Topic] = [
     Topic(
@@ -21,21 +21,40 @@ topics: list[Topic] = [
 ]
 
 
-def create_graph() -> GraphNode:
+def create_graph_nodes() -> list[GraphNode]:
     graph_nodes = [
         GraphNode(
             node_id=str(uuid4()),
             topic_id=topic.topic_id,
-            studied=False,
+            is_studied=False,
             is_major=False,
-            prev_node=None,
-            next_node=None,
+            prev_node_id=None,
+            next_node_id=None,
         )
         for topic in topics
     ]
     for i, node in enumerate(graph_nodes):
         if i != 0:
-            node.prev_node = graph_nodes[i - 1]
+            node.prev_node_id = graph_nodes[i - 1].node_id
         if i != len(graph_nodes) - 1:
-            node.next_node = graph_nodes[i + 1]
-    return graph_nodes[0]
+            node.next_node_id = graph_nodes[i + 1].node_id
+
+    return graph_nodes
+
+
+def create_users_graph_nodes(graph_nodes: list[GraphNode]) -> list[UsersGraphNode]:
+    users_graph_nodes = []
+
+    for node in graph_nodes:
+        users_graph_nodes.append(
+            UsersGraphNode(
+                node_id=node.node_id,
+                topic_id=node.topic_id,
+                title=topics[0].title,
+                is_studied=node.is_studied,
+                is_major=node.is_major,
+                next_node_id=node.next_node_id,
+            )
+        )
+
+    return users_graph_nodes

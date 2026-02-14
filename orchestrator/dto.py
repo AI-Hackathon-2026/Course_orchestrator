@@ -1,6 +1,14 @@
+import enum
+
 from pydantic import BaseModel
 
 from orchestrator.graph import Graph, Topic
+
+
+class ResponseCodes(enum.Enum):
+    OK = 52
+    INTERNAL_ERROR = 69
+    BAD_REQUEST = 67
 
 
 class GraphItem(BaseModel):
@@ -20,7 +28,7 @@ class GetGraphsRequest(BaseModel):
 class GetGraphsResponse(BaseModel):
     request_id: str
     message: list[Graph] | None
-    status: str
+    status: ResponseCodes
 
 
 class GetTopicRequest(BaseModel):
@@ -31,31 +39,30 @@ class GetTopicRequest(BaseModel):
 class GetTopicResponse(BaseModel):
     request_id: str
     message: Topic | None
-    status: str
+    status: ResponseCodes
 
 
-class BdLinksItem(BaseModel):
+class DBLinks(BaseModel):
     link_id: str
 
 
-class CreateCourseRequestItem(BaseModel):
+class CreateCourseData(BaseModel):
     username: str
     requirements: str
-    links: list[BdLinksItem]
+    links: list[DBLinks]
 
 
 class CreateCourseRequest(BaseModel):
     request_id: str
-    message: CreateCourseRequestItem
+    message: CreateCourseData
 
 
-class CreateCourseResponseItem(BaseModel):
+class UsersGraph(BaseModel):
     username: str
     graph_id: str | None
-    code: int
 
 
 class CreateCourseResponse(BaseModel):
     request_id: str
-    message: CreateCourseResponseItem | None
-    status: str
+    message: UsersGraph | None
+    status: ResponseCodes
