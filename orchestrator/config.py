@@ -15,16 +15,13 @@ class LangfuseSettings(BaseSettings):
     PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY")
 
 
-class DatabaseConfig(BaseSettings):
-    DATABASE_HOST: str = "127.0.0.1"
-    PORT: int = 5432
-    DATABASE: str = "tmp"
-    DATABASE_URL: str = (
-        f"postgresql://{os.environ.get('DATABASE_USER')}:"
-        f"{os.environ.get('DATABASE_USER_PASSWORD')}@{DATABASE_HOST}:{PORT}/{DATABASE}"
-    )
+class MongoDBConfig(BaseSettings):
+    MONGO_HOST: str = "127.0.0.1"
+    PORT: int = 27017
+    MONGO_URL: str = f"mongodb://{MONGO_HOST}:{PORT}/"
+    DATABASE: str = "courses"
 
 
 backend_config = BackendConfig()
 langfuse_settings = LangfuseSettings()
-database_config = DatabaseConfig()
+mongo_config = MongoDBConfig()

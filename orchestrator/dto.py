@@ -16,7 +16,6 @@ class GraphItem(BaseModel):
 
 
 class TopicItem(BaseModel):
-    graph_id: str
     topic_id: str
 
 

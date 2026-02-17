@@ -1,10 +1,9 @@
-import uuid
-
+from bson import ObjectId
 from langfuse import Langfuse, observe
 
 from orchestrator.config import langfuse_settings
 from orchestrator.data_base import data_base_agent
-from orchestrator.default_graph import create_graph_nodes, create_users_graph_nodes
+from orchestrator.default_graph import default_graph
 from orchestrator.dto import (
     CreateCourseRequest,
     CreateCourseResponse,
@@ -46,11 +45,12 @@ async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
 
 @observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
-    graph_nodes = create_graph_nodes()
+    graph_nodes = default_graph.create_graph_nodes()
     await data_base_agent.add_graph_nodes(graph_nodes)
 
     new_course = Graph(
-        graph_id=str(uuid.uuid4()), nodes=create_users_graph_nodes(graph_nodes)
+        graph_id=str(ObjectId()),
+        nodes=default_graph.create_users_graph_nodes(graph_nodes),
     )
     await data_base_agent.add_graph(new_course)
 
