@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings
 
 class BackendConfig(BaseSettings):
     PORT: int = 8067
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     RELOAD: bool = False
 
 

@@ -1,6 +1,6 @@
 from bson import ObjectId
-
 from orchestrator.graph import GraphNode, Topic, UsersGraphNode
+from orchestrator.data_base import data_base_agent
 
 
 class DefaultGraph:
@@ -22,7 +22,8 @@ class DefaultGraph:
         ),
     ]
 
-    def create_graph_nodes(self) -> list[GraphNode]:
+    @classmethod
+    async def create_graph_nodes(cls) -> list[GraphNode]:
         graph_nodes = [
             GraphNode(
                 node_id=str(ObjectId()),
@@ -32,7 +33,7 @@ class DefaultGraph:
                 prev_node_id=None,
                 next_node_id=None,
             )
-            for topic in self.topics
+            for topic in await data_base_agent.get_all_topics()
         ]
         for i, node in enumerate(graph_nodes):
             if i != 0:
@@ -42,8 +43,9 @@ class DefaultGraph:
 
         return graph_nodes
 
-    def create_users_graph_nodes(
-        self, graph_nodes: list[GraphNode]
+    @classmethod
+    async def create_users_graph_nodes(
+        cls, graph_nodes: list[GraphNode]
     ) -> list[UsersGraphNode]:
         users_graph_nodes = []
 
@@ -52,7 +54,7 @@ class DefaultGraph:
                 UsersGraphNode(
                     node_id=node.node_id,
                     topic_id=node.topic_id,
-                    title=self.topics[0].title,
+                    title=(await data_base_agent.get_topic(node.topic_id)).title,
                     is_studied=node.is_studied,
                     is_major=node.is_major,
                     next_node_id=node.next_node_id,
@@ -60,6 +62,3 @@ class DefaultGraph:
             )
 
         return users_graph_nodes
-
-
-default_graph = DefaultGraph()
