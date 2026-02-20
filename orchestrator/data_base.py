@@ -1,7 +1,8 @@
-from orchestrator.graph import Graph, GraphNode, Topic
-from pymongo import AsyncMongoClient
-from orchestrator.config import mongo_config
 from bson import ObjectId
+from pymongo import AsyncMongoClient
+
+from orchestrator.config import mongo_config
+from orchestrator.graph import Graph, GraphNode, Topic
 from orchestrator.mongo_trans import MongoTrans
 
 
@@ -10,11 +11,10 @@ class Mongo:
         self.client = AsyncMongoClient(mongo_config.MONGO_URL)
         self.data_base = self.client["courses"]
 
-    def __del__(self):
-        self.client.close()
-
     async def get_graphs(self, graphs_ids: list[ObjectId]) -> list[dict]:
-        result = await self.data_base["graphs"].find({"_id": {"$in": graphs_ids}}).to_list()
+        result = (
+            await self.data_base["graphs"].find({"_id": {"$in": graphs_ids}}).to_list()
+        )
         return result
 
     async def get_topic(self, topic_id: ObjectId) -> dict | None:
