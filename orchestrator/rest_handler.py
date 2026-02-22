@@ -30,7 +30,7 @@ async def new_course_api(request: CreateCourseRequest):
     return await create_new_course(request)
 
 
-if __name__ == "__main__":
+def start_rest():
     uvicorn.run(
         "orchestrator.rest_handler:app",
         host=backend_config.HOST,

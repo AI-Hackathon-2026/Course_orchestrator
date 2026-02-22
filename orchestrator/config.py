@@ -15,10 +15,13 @@ class LangfuseSettings(BaseSettings):
     PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY")
 
 
-class RedisConfig:
-    REDIS_VALUE_TYPE = str | int | float | dict | list | bool | set | None
+class MongoDBConfig(BaseSettings):
+    MONGO_HOST: str = "mongo_db"
+    PORT: int = 27017
+    MONGO_URL: str = f"mongodb://{MONGO_HOST}:{PORT}/"
+    DATABASE: str = "courses"
 
 
 backend_config = BackendConfig()
 langfuse_settings = LangfuseSettings()
-redis_config = RedisConfig()
+mongo_config = MongoDBConfig()
