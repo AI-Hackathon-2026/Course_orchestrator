@@ -2,6 +2,7 @@ from bson import ObjectId
 from pymongo import AsyncMongoClient
 
 from orchestrator.config import mongo_config
+from orchestrator.default_graph import DefaultGraph
 from orchestrator.graph import Graph, GraphNode, Topic
 from orchestrator.mongo_trans import MongoTrans
 
@@ -31,6 +32,31 @@ class Mongo:
     async def add_graph(self, graph: dict):
         await self.data_base["graphs"].insert_one(graph)
 
+    async def recalculate_graph(self, graph_id):
+        graph_nodes = (
+            await self.data_base["nodes"].find({"graph_id": graph_id}).to_list()
+        )
+
+        nodes_mapping: dict[str, GraphNode] = {
+            node["node_id"]: GraphNode(**node) for node in graph_nodes
+        }
+        cur_node_id = ""
+        for node in graph_nodes:
+            if node["prev_node_id"] is None:
+                cur_node_id = node["node_id"]
+
+        sorted_graph_nodes: list[GraphNode] = []
+        while cur_node_id is not None:
+            cur_node = nodes_mapping[cur_node_id]
+            sorted_graph_nodes.append(cur_node)
+            cur_node_id = cur_node.next_node_id
+
+        graph_nodes = await DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
+        graph_nodes = [node.model_dump() for node in graph_nodes]
+        await self.data_base["graph"].update_one(
+            {"graph_id": graph_id}, {"$set": {"nodes": graph_nodes}}
+        )
+
 
 class DataBaseAgent:
     def __init__(self):
@@ -57,6 +83,9 @@ class DataBaseAgent:
         topics = await self.mongo.get_all_topics()
         topics = [MongoTrans.mongo_to_pydantic(Topic, topic) for topic in topics]
         return topics
+
+    async def recalculate_graph(self, graph_id):
+        await self.mongo.recalculate_graph(graph_id=graph_id)
 
 
 data_base_agent = DataBaseAgent()

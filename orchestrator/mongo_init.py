@@ -16,3 +16,4 @@ def mongo_init():
             courses_db.create_collection("graphs")
         if "nodes" not in courses_db.list_collection_names():
             courses_db.create_collection("nodes")
+            courses_db["nodes"].create_index("graph_id")
