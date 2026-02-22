@@ -3,12 +3,6 @@ import enum
 from pydantic import BaseModel
 
 from orchestrator.graph import Graph, Topic
-import enum
-
-class ResponseCodes(enum.Enum):
-    OK = 52
-    INTERNAL_ERROR = 69
-    BAD_REQUEST = 67
 
 
 class ResponseCodes(enum.Enum):
