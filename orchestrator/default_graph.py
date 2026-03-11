@@ -1,6 +1,5 @@
 from bson import ObjectId
 from orchestrator.graph import GraphNode, Topic, UsersGraphNode
-from orchestrator.data_base import data_base_agent
 
 
 class DefaultGraph:
@@ -21,19 +20,19 @@ class DefaultGraph:
             topic_content="Мемоизация, 1dp, 2dp",
         ),
     ]
-
     @classmethod
-    async def create_graph_nodes(cls) -> list[GraphNode]:
+    async def create_graph_nodes(cls, graph_id: str) -> list[GraphNode]:
         graph_nodes = [
             GraphNode(
                 node_id=str(ObjectId()),
+                graph_id=graph_id,
                 topic_id=topic.topic_id,
                 is_studied=False,
                 is_major=False,
                 prev_node_id=None,
                 next_node_id=None,
             )
-            for topic in await data_base_agent.get_all_topics()
+            for topic in cls.topics
         ]
         for i, node in enumerate(graph_nodes):
             if i != 0:
@@ -49,12 +48,12 @@ class DefaultGraph:
     ) -> list[UsersGraphNode]:
         users_graph_nodes = []
 
-        for node in graph_nodes:
+        for i, node in enumerate(graph_nodes):
             users_graph_nodes.append(
                 UsersGraphNode(
                     node_id=node.node_id,
                     topic_id=node.topic_id,
-                    title=(await data_base_agent.get_topic(node.topic_id)).title,
+                    title=cls.topics[i].title,
                     is_studied=node.is_studied,
                     is_major=node.is_major,
                     next_node_id=node.next_node_id,

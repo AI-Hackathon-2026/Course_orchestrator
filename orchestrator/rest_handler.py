@@ -29,7 +29,6 @@ async def get_topic_api(request: GetTopicRequest):
 async def new_course_api(request: CreateCourseRequest):
     return await create_new_course(request)
 
-
 def start_rest():
     uvicorn.run(
         "orchestrator.rest_handler:app",

@@ -57,7 +57,8 @@ async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
 @observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
     try:
-        graph_nodes = await DefaultGraph.create_graph_nodes()
+        graph_id = str(ObjectId())
+        graph_nodes = await DefaultGraph.create_graph_nodes(graph_id)
         await data_base_agent.add_graph_nodes(graph_nodes)
 
         new_course = Graph(
