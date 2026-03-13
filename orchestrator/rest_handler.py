@@ -1,16 +1,27 @@
+from logging import getLogger
+
 import uvicorn
 from fastapi import FastAPI
 
-from orchestrator.app import create_new_course, get_graphs, get_topic
+from orchestrator.app import (
+    create_new_course,
+    get_graph_previews,
+    get_graphs,
+    get_topic,
+)
 from orchestrator.config import backend_config
 from orchestrator.dto import (
     CreateCourseRequest,
     CreateCourseResponse,
+    GetGraphsPreviewRequest,
+    GetGraphsPreviewResponse,
     GetGraphsRequest,
     GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
 )
+
+logger = getLogger(__name__)
 
 app = FastAPI()
 
@@ -28,6 +39,12 @@ async def get_topic_api(request: GetTopicRequest):
 @app.post("/create_new_course", response_model=CreateCourseResponse)
 async def new_course_api(request: CreateCourseRequest):
     return await create_new_course(request)
+
+
+@app.get("/get_graph_previews", response_model=GetGraphsPreviewResponse)
+async def get_graph_previews_api(request: GetGraphsPreviewRequest):
+    return await get_graph_previews(request)
+
 
 def start_rest():
     uvicorn.run(

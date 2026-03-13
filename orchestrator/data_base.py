@@ -51,7 +51,7 @@ class Mongo:
             sorted_graph_nodes.append(cur_node)
             cur_node_id = cur_node.next_node_id
 
-        graph_nodes = await DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
+        graph_nodes = DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
         graph_nodes = [node.model_dump() for node in graph_nodes]
         await self.data_base["graph"].update_one(
             {"graph_id": graph_id}, {"$set": {"nodes": graph_nodes}}

@@ -30,4 +30,11 @@ class UsersGraphNode(BaseModel):
 
 class Graph(BaseModel):
     graph_id: str
+    title: str
     nodes: list[UsersGraphNode]
+
+
+class GraphPreview(BaseModel):
+    graph_id: str
+    title: str
+    progress: float
