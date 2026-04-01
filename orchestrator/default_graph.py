@@ -63,7 +63,7 @@ class DefaultGraph:
     ]
 
     @classmethod
-    def create_graph_nodes(cls, graph_id: str, topics: [Topic]) -> list[GraphNode]:
+    def create_graph_nodes(cls, graph_id: str, topics: list[Topic]) -> list[GraphNode]:
         graph_nodes = [
             GraphNode(
                 node_id=str(ObjectId()),

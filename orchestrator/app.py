@@ -1,5 +1,5 @@
 from bson import ObjectId
-from langfuse import Langfuse, observe
+from langfuse import Langfuse
 from pymongo.errors import PyMongoError
 
 from orchestrator.config import langfuse_settings
@@ -26,7 +26,6 @@ langfuse = Langfuse(
 )
 
 
-@observe(name="get_graphs")
 async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
     try:
         graphs = await data_base_agent.get_graphs(
@@ -43,7 +42,6 @@ async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
         )
 
 
-@observe(name="get_topic")
 async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
     try:
         topic = await data_base_agent.get_topic(topic_id=request.message.topic_id)
@@ -58,12 +56,11 @@ async def get_topic(request: GetTopicRequest) -> GetTopicResponse:
         )
 
 
-@observe(name="create_new_course")
 async def create_new_course(request: CreateCourseRequest) -> CreateCourseResponse:
     try:
         graph_id = str(ObjectId())
         graph_nodes = DefaultGraph.create_graph_nodes(
-            graph_id, data_base_agent.get_all_topics()
+            graph_id, await data_base_agent.get_all_topics()
         )
         await data_base_agent.add_graph_nodes(graph_nodes)
 
@@ -89,7 +86,6 @@ async def create_new_course(request: CreateCourseRequest) -> CreateCourseRespons
         )
 
 
-@observe(name="get_graph_previews")
 async def get_graph_previews(
     request: GetGraphsPreviewRequest,
 ) -> GetGraphsPreviewResponse:
