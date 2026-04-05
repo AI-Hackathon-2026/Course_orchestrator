@@ -1,5 +1,3 @@
-from logging import getLogger
-
 import uvicorn
 from fastapi import FastAPI
 
@@ -20,8 +18,6 @@ from orchestrator.dto import (
     GetTopicRequest,
     GetTopicResponse,
 )
-
-logger = getLogger(__name__)
 
 app = FastAPI()
 

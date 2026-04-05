@@ -1,5 +1,5 @@
 orchestrator/tmp.py
 .idea/
 orchestrator/__pycache__/
-.env
+*.env
 venv

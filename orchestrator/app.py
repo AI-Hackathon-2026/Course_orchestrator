@@ -1,8 +1,6 @@
 from bson import ObjectId
-from langfuse import Langfuse
 from pymongo.errors import PyMongoError
 
-from orchestrator.config import langfuse_settings
 from orchestrator.data_base import data_base_agent
 from orchestrator.default_graph import DefaultGraph
 from orchestrator.dto import (
@@ -18,12 +16,6 @@ from orchestrator.dto import (
     UsersGraph,
 )
 from orchestrator.graph import Graph, GraphPreview
-
-langfuse = Langfuse(
-    secret_key=langfuse_settings.SECRET_KEY,
-    public_key=langfuse_settings.PUBLIC_KEY,
-    host=langfuse_settings.LANGFUSE_SERVER,
-)
 
 
 async def get_graphs(request: GetGraphsRequest) -> GetGraphsResponse:
