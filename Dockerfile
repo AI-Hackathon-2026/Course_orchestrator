@@ -2,12 +2,13 @@ FROM python:3.12-slim AS builder
 RUN pip install uv
 WORKDIR /app
 COPY requirements.txt .
-RUN uv venv && uv pip install --no-cache-dir -r requirements.txt
+RUN uv venv && \
+    uv pip install --no-cache-dir -r requirements.txt
 
 FROM python:3.12-slim
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
-COPY . .
-EXPOSE 6767
-CMD ["uv", "run", "python", "-m", "orchestrator.rest_handler"]
+COPY /orchestrator /app/orchestrator
+EXPOSE 8067
+CMD ["python", "-m", "orchestrator.main"]
