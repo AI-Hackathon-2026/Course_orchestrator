@@ -46,7 +46,9 @@ class App:
             )
             if topic is not None:
                 topic = MongoTrans.mongo_to_pydantic(MlTopic, topic)
-            topic = Topic(**(topic.model_dump().pop("context")))
+            topic = topic.model_dump()
+            topic.pop("context")
+            topic = Topic(**topic)
             return GetTopicResponse(
                 request_id=request.request_id, message=topic, status=ResponseCodes.OK
             )

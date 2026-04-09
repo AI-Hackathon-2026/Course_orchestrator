@@ -9,7 +9,7 @@ class Topic(BaseModel):
     topic_content: str
 
 
-class MlTopic(BaseModel, Topic):
+class MlTopic(Topic):
     context: str
 
 
