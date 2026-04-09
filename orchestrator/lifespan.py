@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from orchestrator.mongo_init import mongo_init
 from pymongo import AsyncMongoClient
-from config import mongo_config
+
 from orchestrator.app import App
+from orchestrator.config import mongo_config
 from orchestrator.data_base import MongoClient
+from orchestrator.mongo_init import mongo_init
 
 
 @asynccontextmanager

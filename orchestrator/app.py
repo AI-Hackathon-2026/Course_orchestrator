@@ -1,6 +1,7 @@
-from pymongo.errors import PyMongoError
 from bson import ObjectId
-from orchestrator.mongo_trans import MongoTrans
+from pymongo.errors import PyMongoError
+
+from orchestrator.data_base import MongoClient
 from orchestrator.default_graph import DefaultGraph
 from orchestrator.dto import (
     CreateCourseRequest,
@@ -14,14 +15,14 @@ from orchestrator.dto import (
     ResponseCodes,
     UsersGraph,
 )
-from data_base import MongoClient
-from orchestrator.graph import Topic
-from orchestrator.graph import Graph, GraphPreview
+from orchestrator.graph import Graph, GraphPreview, Topic
+from orchestrator.mongo_trans import MongoTrans
 
 
 class App:
     def __init__(self, mongo_client: MongoClient) -> None:
         self.mongo_client = mongo_client
+
     async def get_graphs(self, request: GetGraphsRequest) -> GetGraphsResponse:
         try:
             graphs = await self.mongo_client.get_graphs(
@@ -38,10 +39,11 @@ class App:
                 status=ResponseCodes.INTERNAL_ERROR,
             )
 
-
     async def get_topic(self, request: GetTopicRequest) -> GetTopicResponse:
         try:
-            topic = await self.mongo_client.get_topic(topic_id=ObjectId(request.message.topic_id))
+            topic = await self.mongo_client.get_topic(
+                topic_id=ObjectId(request.message.topic_id)
+            )
             if topic is not None:
                 topic = MongoTrans.mongo_to_pydantic(Topic, topic)
 
@@ -55,16 +57,17 @@ class App:
                 status=ResponseCodes.INTERNAL_ERROR,
             )
 
-
-    async def create_new_course(self, request: CreateCourseRequest) -> CreateCourseResponse:
+    async def create_new_course(
+        self, request: CreateCourseRequest
+    ) -> CreateCourseResponse:
         try:
             graph_id = str(ObjectId())
             topics = await self.mongo_client.get_all_topics()
             topics = [MongoTrans.mongo_to_pydantic(Topic, topic) for topic in topics]
-            graph_nodes = DefaultGraph.create_graph_nodes(
-                graph_id, topics
+            graph_nodes = DefaultGraph.create_graph_nodes(graph_id, topics)
+            await self.mongo_client.add_graph_nodes(
+                [MongoTrans.pydantic_to_mongo(graph_node) for graph_node in graph_nodes]
             )
-            await self.mongo_client.add_graph_nodes([MongoTrans.pydantic_to_mongo(graph_node) for graph_node in graph_nodes])
 
             new_course = Graph(
                 graph_id=str(ObjectId()),
@@ -87,12 +90,16 @@ class App:
                 message=None,
             )
 
-
-    async def get_graph_previews(self,
+    async def get_graph_previews(
+        self,
         request: GetGraphsPreviewRequest,
     ) -> GetGraphsPreviewResponse:
         try:
-            graphs = (await self.get_graphs(GetGraphsRequest(request_id="", message=request.message))).message
+            graphs = (
+                await self.get_graphs(
+                    GetGraphsRequest(request_id="", message=request.message)
+                )
+            ).message
             graphs_previews: list[GraphPreview] = [
                 GraphPreview(
                     graph_id=graph.graph_id,
