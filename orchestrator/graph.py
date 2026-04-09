@@ -9,6 +9,10 @@ class Topic(BaseModel):
     topic_content: str
 
 
+class MlTopic(BaseModel, Topic):
+    context: str
+
+
 class GraphNode(BaseModel):
     node_id: str
     graph_id: str
