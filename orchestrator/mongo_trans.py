@@ -2,12 +2,12 @@ from typing import Type
 
 from bson import ObjectId
 
-from orchestrator.graph import Graph, GraphNode, MlTopic
+from orchestrator.graph import Graph, GraphNode, MLTopic
 
 
 class MongoTrans:
     @classmethod
-    def pydantic_to_mongo(cls, model: Graph | GraphNode | MlTopic) -> dict:
+    def pydantic_to_mongo(cls, model: Graph | GraphNode | MLTopic) -> dict:
         model_class = type(model)
         if model_class is Graph:
             id_name = "graph_id"
@@ -22,8 +22,8 @@ class MongoTrans:
 
     @classmethod
     def mongo_to_pydantic(
-        cls, model_class: Type[Graph | GraphNode | MlTopic], mongo_dict: dict
-    ) -> Graph | GraphNode | MlTopic:
+        cls, model_class: Type[Graph | GraphNode | MLTopic], mongo_dict: dict
+    ) -> Graph | GraphNode | MLTopic:
         if model_class is Graph:
             id_name = "graph_id"
         elif model_class is GraphNode:

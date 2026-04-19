@@ -8,7 +8,7 @@ class BackendConfig(BaseSettings):
 
 
 class MongoDBConfig(BaseSettings):
-    MONGO_HOST: str = "mongo_db"
+    MONGO_HOST: str = "localhost"
     PORT: int = 27017
     MONGO_URL: str = f"mongodb://{MONGO_HOST}:{PORT}/"
     DATABASE: str = "courses"

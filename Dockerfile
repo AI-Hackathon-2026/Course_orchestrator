@@ -2,8 +2,7 @@ FROM python:3.12-slim AS builder
 RUN pip install uv
 WORKDIR /app
 COPY pyproject.toml uv.lock .
-RUN uv venv && \
-    uv pip install --no-cache-dir -r pyproject.toml
+RUN uv sync
 
 FROM python:3.12-slim
 COPY --from=builder /app/.venv /app/.venv

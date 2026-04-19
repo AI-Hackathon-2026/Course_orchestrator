@@ -18,3 +18,8 @@ async def lifespan(api_app: FastAPI):
     api_app.state.app = app
     yield
     await mongo_connect.close()
+
+
+def create_app():
+    app = FastAPI(lifespan=lifespan)
+    return app

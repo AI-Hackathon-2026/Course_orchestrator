@@ -15,7 +15,7 @@ from orchestrator.dto import (
     ResponseCodes,
     UsersGraph,
 )
-from orchestrator.graph import Graph, GraphPreview, MlTopic, Topic
+from orchestrator.graph import Graph, GraphPreview, MLTopic, Topic
 from orchestrator.mongo_trans import MongoTrans
 
 
@@ -45,7 +45,7 @@ class App:
                 topic_id=ObjectId(request.message.topic_id)
             )
             if topic is not None:
-                topic = MongoTrans.mongo_to_pydantic(MlTopic, topic)
+                topic = MongoTrans.mongo_to_pydantic(MLTopic, topic)
             topic = topic.model_dump()
             topic.pop("context")
             topic = Topic(**topic)
@@ -65,7 +65,7 @@ class App:
         try:
             graph_id = str(ObjectId())
             topics = await self.mongo_client.get_all_topics()
-            topics = [MongoTrans.mongo_to_pydantic(MlTopic, topic) for topic in topics]
+            topics = [MongoTrans.mongo_to_pydantic(MLTopic, topic) for topic in topics]
             graph_nodes = DefaultGraph.create_graph_nodes(graph_id, topics)
             await self.mongo_client.add_graph_nodes(
                 [MongoTrans.pydantic_to_mongo(graph_node) for graph_node in graph_nodes]
