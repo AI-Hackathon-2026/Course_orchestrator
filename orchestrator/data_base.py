@@ -1,55 +1,54 @@
-import asyncio
-
-from orchestrator.config import redis_config
-from orchestrator.default_graph import topics
-from orchestrator.graph import Graph, GraphNode, Topic
-
-
-class AsyncRedisClient:
-    def __init__(self):
-        self.redis = {}
-
-    async def set(self, name: str, value: redis_config.REDIS_VALUE_TYPE):
-        self.redis[name] = value
-
-    async def get(self, name: str) -> redis_config.REDIS_VALUE_TYPE:
-        return self.redis.get(name)
+from bson import ObjectId
+from pymongo import AsyncMongoClient
+from orchestrator.default_graph import DefaultGraph
+from orchestrator.graph import  GraphNode
 
 
-class DataBaseAgent:
-    def __init__(self):
-        self.redis = AsyncRedisClient()
-        asyncio.run(self.add_default_topics())
+class MongoClient:
+    def __init__(self, mongo_connection: AsyncMongoClient):
+        self.client = mongo_connection
+        self.data_base = self.client["courses"]
+    async def get_graphs(self, graphs_ids: list[ObjectId]) -> list[dict]:
+        result = (
+            await self.data_base["graphs"].find({"_id": {"$in": graphs_ids}}).to_list()
+        )
+        return result
 
-    async def get_graphs(self, graph_ids: list[str]) -> list[Graph]:
-        graphs = []
-        for graph_id in graph_ids:
-            if graph := await self.redis.get(graph_id):
-                graphs.append(Graph(**graph))
-        return graphs
+    async def get_topic(self, topic_id: ObjectId) -> dict | None:
+        result = await self.data_base["topics"].find_one({"_id": topic_id})
+        return result
 
-    async def add_default_topics(self):
-        for topic in topics:
-            await self.redis.set(topic.topic_id, topic.model_dump())
+    async def get_all_topics(self) -> list[dict]:
+        result = await self.data_base["topics"].find().to_list()
+        return result
 
-    async def get_topic_from_node(self, node_id: int, graph_id: str) -> Topic | None:
-        graph = await self.redis.get(graph_id)
-        if graph:
-            next_node_id = graph["first_node_id"]
-            node = await self.redis.get(next_node_id)
-            while node:
-                if node["node_id"] == node_id:
-                    return await self.redis.get(node["topic_id"])
-                next_node_id = node["next_node"]
-                node = await self.redis.get(next_node_id)
-        return None
+    async def add_graph_nodes(self, graph_nodes: list[dict]):
+        await self.data_base["nodes"].insert_many(graph_nodes)
 
-    async def add_graph_nodes(self, graph_nodes: list[GraphNode]):
-        for graph_node in graph_nodes:
-            await self.redis.set(graph_node.node_id, graph_node.model_dump())
+    async def add_graph(self, graph: dict):
+        await self.data_base["graphs"].insert_one(graph)
 
-    async def add_graph(self, graph: Graph):
-        await self.redis.set(name=graph.graph_id, value=graph.model_dump())
+    async def recalculate_graph(self, graph_id):
+        graph_nodes = (
+            await self.data_base["nodes"].find({"graph_id": graph_id}).to_list()
+        )
 
+        nodes_mapping: dict[str, GraphNode] = {
+            node["node_id"]: GraphNode(**node) for node in graph_nodes
+        }
+        cur_node_id = ""
+        for node in graph_nodes:
+            if node["prev_node_id"] is None:
+                cur_node_id = node["node_id"]
 
-data_base_agent = DataBaseAgent()
+        sorted_graph_nodes: list[GraphNode] = []
+        while cur_node_id is not None:
+            cur_node = nodes_mapping[cur_node_id]
+            sorted_graph_nodes.append(cur_node)
+            cur_node_id = cur_node.next_node_id
+
+        graph_nodes = DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
+        graph_nodes = [node.model_dump() for node in graph_nodes]
+        await self.data_base["graph"].update_one(
+            {"graph_id": graph_id}, {"$set": {"nodes": graph_nodes}}
+        )
