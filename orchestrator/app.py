@@ -13,6 +13,8 @@ from orchestrator.dto import (
     GetTopicRequest,
     GetTopicResponse,
     ResponseCodes,
+    SetNodeAsEndedRequest,
+    SetNodeAsEndedResponse,
     UsersGraph,
 )
 from orchestrator.graph import Graph, GraphPreview, MLTopic, Topic
@@ -126,4 +128,20 @@ class App:
                 request_id=request.request_id,
                 status=ResponseCodes.INTERNAL_ERROR,
                 message=None,
+            )
+
+    async def set_node_as_ended(
+        self, request: SetNodeAsEndedRequest
+    ) -> SetNodeAsEndedResponse:
+        try:
+            node_id = ObjectId(request.message.node_id)
+            await self.mongo_client.set_node_as_ended(node_id)
+            return SetNodeAsEndedResponse(
+                request_id=request.request_id, status=ResponseCodes.OK, message=None
+            )
+        except PyMongoError:
+            return SetNodeAsEndedResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.INTERNAL_ERROR,
             )

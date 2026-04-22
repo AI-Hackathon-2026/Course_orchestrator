@@ -1,13 +1,15 @@
 from bson import ObjectId
 from pymongo import AsyncMongoClient
+
 from orchestrator.default_graph import DefaultGraph
-from orchestrator.graph import  GraphNode
+from orchestrator.graph import GraphNode
 
 
 class MongoClient:
     def __init__(self, mongo_connection: AsyncMongoClient):
         self.client = mongo_connection
         self.data_base = self.client["courses"]
+
     async def get_graphs(self, graphs_ids: list[ObjectId]) -> list[dict]:
         result = (
             await self.data_base["graphs"].find({"_id": {"$in": graphs_ids}}).to_list()
@@ -51,4 +53,10 @@ class MongoClient:
         graph_nodes = [node.model_dump() for node in graph_nodes]
         await self.data_base["graph"].update_one(
             {"graph_id": graph_id}, {"$set": {"nodes": graph_nodes}}
+        )
+
+    async def set_node_as_ended(self, node_id: ObjectId):
+        nodes_collection = self.data_base["nodes"]
+        await nodes_collection.update_one(
+            {"_id": node_id}, {"$set": {"is_ended": True}}
         )
