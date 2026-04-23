@@ -74,7 +74,7 @@ class App:
             )
 
             new_course = Graph(
-                graph_id=str(ObjectId()),
+                graph_id=graph_id,
                 nodes=DefaultGraph.create_users_graph_nodes(graph_nodes),
                 title=DefaultGraph.default_title,
             )
@@ -137,7 +137,7 @@ class App:
         try:
             node_id = ObjectId(request.message.node_id)
             node = await self.mongo_client.get_node(node_id)
-            graph_id = node["graph_id"]
+            graph_id = ObjectId(node["graph_id"])
             await self.mongo_client.set_node_as_ended(node_id)
             await self.mongo_client.recalculate_graph(graph_id)
             return SetNodeAsEndedResponse(

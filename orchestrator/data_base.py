@@ -30,11 +30,10 @@ class MongoClient:
     async def add_graph(self, graph: dict):
         await self.data_base["graphs"].insert_one(graph)
 
-    async def recalculate_graph(self, graph_id):
+    async def recalculate_graph(self, graph_id: ObjectId):
         graph_nodes: list[dict] = (
-            await self.data_base["nodes"].find({"graph_id": graph_id}).to_list()
+            await self.data_base["nodes"].find({"graph_id": str(graph_id)}).to_list()
         )
-
         nodes_mapping: dict[str, GraphNode] = {}
 
         for node in graph_nodes:
@@ -54,8 +53,8 @@ class MongoClient:
 
         graph_nodes = DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
         graph_nodes = [node.model_dump() for node in graph_nodes]
-        await self.data_base["graph"].update_one(
-            {"graph_id": graph_id}, {"$set": {"nodes": graph_nodes}}
+        await self.data_base["graphs"].update_one(
+            {"_id": graph_id}, {"$set": {"nodes": graph_nodes}}
         )
 
     async def set_node_as_ended(self, node_id: ObjectId):
