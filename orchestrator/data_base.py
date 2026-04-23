@@ -31,13 +31,16 @@ class MongoClient:
         await self.data_base["graphs"].insert_one(graph)
 
     async def recalculate_graph(self, graph_id):
-        graph_nodes = (
+        graph_nodes: list[dict] = (
             await self.data_base["nodes"].find({"graph_id": graph_id}).to_list()
         )
 
-        nodes_mapping: dict[str, GraphNode] = {
-            node["node_id"]: GraphNode(**node) for node in graph_nodes
-        }
+        nodes_mapping: dict[str, GraphNode] = {}
+
+        for node in graph_nodes:
+            node["node_id"] = str(node["_id"])
+            node.pop("_id")
+            nodes_mapping[node["node_id"]] = GraphNode(**node)
         cur_node_id = ""
         for node in graph_nodes:
             if node["prev_node_id"] is None:
@@ -58,5 +61,9 @@ class MongoClient:
     async def set_node_as_ended(self, node_id: ObjectId):
         nodes_collection = self.data_base["nodes"]
         await nodes_collection.update_one(
-            {"_id": node_id}, {"$set": {"is_ended": True}}
+            {"_id": node_id}, {"$set": {"is_studied": True}}
         )
+
+    async def get_node(self, node_id: ObjectId):
+        nodes_collection = self.data_base["nodes"]
+        return await nodes_collection.find_one({"_id": node_id})

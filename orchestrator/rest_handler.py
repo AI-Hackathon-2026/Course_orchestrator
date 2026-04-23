@@ -24,14 +24,14 @@ def get_app() -> App:
     return api_app.state.app
 
 
-@api_app.get("/get_graphs", response_model=GetGraphsResponse)
+@api_app.post("/get_graphs", response_model=GetGraphsResponse)
 async def get_graph_api(
     request: GetGraphsRequest, app: Annotated[App, Depends(get_app)]
 ):
     return await app.get_graphs(request)
 
 
-@api_app.get("/get_topic", response_model=GetTopicResponse)
+@api_app.post("/get_topic", response_model=GetTopicResponse)
 async def get_topic_api(
     request: GetTopicRequest, app: Annotated[App, Depends(get_app)]
 ):
@@ -45,14 +45,14 @@ async def new_course_api(
     return await app.create_new_course(request)
 
 
-@api_app.get("/get_graph_previews", response_model=GetGraphsPreviewResponse)
+@api_app.post("/get_graph_previews", response_model=GetGraphsPreviewResponse)
 async def get_graph_previews_api(
     request: GetGraphsPreviewRequest, app: Annotated[App, Depends(get_app)]
 ):
     return await app.get_graph_previews(request)
 
 
-@api_app.patch("/set_node_as_ended", response_model=SetNodeAsEndedResponse)
+@api_app.post("/set_node_as_ended", response_model=SetNodeAsEndedResponse)
 async def set_node_as_ended_api(
     request: SetNodeAsEndedRequest, app: Annotated[App, Depends(get_app)]
 ):

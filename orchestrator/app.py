@@ -104,12 +104,13 @@ class App:
                     GetGraphsRequest(request_id="", message=request.message)
                 )
             ).message
+            print(graphs)
             graphs_previews: list[GraphPreview] = [
                 GraphPreview(
                     graph_id=graph.graph_id,
                     title=graph.title,
                     progress=round(
-                        sum(int(node.is_studied) for node in graph.nodes)
+                        sum(1 for node in graph.nodes if node.is_studied)
                         / len(graph.nodes)
                         * 100,
                         2,
@@ -135,7 +136,10 @@ class App:
     ) -> SetNodeAsEndedResponse:
         try:
             node_id = ObjectId(request.message.node_id)
+            node = await self.mongo_client.get_node(node_id)
+            graph_id = node["graph_id"]
             await self.mongo_client.set_node_as_ended(node_id)
+            await self.mongo_client.recalculate_graph(graph_id)
             return SetNodeAsEndedResponse(
                 request_id=request.request_id, status=ResponseCodes.OK, message=None
             )
