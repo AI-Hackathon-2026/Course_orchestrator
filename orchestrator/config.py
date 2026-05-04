@@ -12,6 +12,8 @@ class MongoDBConfig(BaseSettings):
     PORT: int = 27017
     MONGO_URL: str = f"mongodb://{MONGO_HOST}:{PORT}/"
     DATABASE: str = "courses"
+    MAX_POOL_SIZE: int = 200
+    MIN_POOL_SIZE: int = 50
 
 
 backend_config = BackendConfig()

@@ -3,3 +3,4 @@ orchestrator/tmp.py
 orchestrator/__pycache__/
 *.env
 venv
+locustfile.py
