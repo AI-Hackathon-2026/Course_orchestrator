@@ -12,7 +12,11 @@ from orchestrator.mongo_init import mongo_init
 @asynccontextmanager
 async def lifespan(api_app: FastAPI):
     mongo_init()
-    mongo_connect = AsyncMongoClient(mongo_config.MONGO_URL)
+    mongo_connect = AsyncMongoClient(
+        mongo_config.MONGO_URL,
+        maxPoolSize=mongo_config.MAX_POOL_SIZE,
+        minPoolSize=mongo_config.MIN_POOL_SIZE,
+    )
     mongo_client = MongoClient(mongo_connection=mongo_connect)
     app = App(mongo_client=mongo_client)
     api_app.state.app = app

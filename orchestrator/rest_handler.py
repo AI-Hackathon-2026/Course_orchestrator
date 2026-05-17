@@ -12,6 +12,8 @@ from orchestrator.dto import (
     GetGraphsResponse,
     GetTopicRequest,
     GetTopicResponse,
+    SetNodeAsEndedRequest,
+    SetNodeAsEndedResponse,
 )
 from orchestrator.lifespan import create_app
 
@@ -48,3 +50,10 @@ async def get_graph_previews_api(
     request: GetGraphsPreviewRequest, app: Annotated[App, Depends(get_app)]
 ):
     return await app.get_graph_previews(request)
+
+
+@api_app.patch("/set_node_as_ended", response_model=SetNodeAsEndedResponse)
+async def set_node_as_ended_api(
+    request: SetNodeAsEndedRequest, app: Annotated[App, Depends(get_app)]
+):
+    return await app.set_node_as_ended(request)
