@@ -1,7 +1,7 @@
 from bson import ObjectId
+from bson.errors import InvalidId
 from pymongo.errors import PyMongoError
 
-from orchestrator.data_base import MongoClient
 from orchestrator.default_graph import DefaultGraph
 from orchestrator.dto import (
     CreateCourseRequest,
@@ -18,11 +18,12 @@ from orchestrator.dto import (
     UsersGraph,
 )
 from orchestrator.graph import Graph, GraphPreview, MLTopic, Topic
-from orchestrator.mongo_trans import MongoTrans
+from orchestrator.mongo.mongo_interface import MongoInterface
+from orchestrator.mongo.mongo_trans import MongoTrans
 
 
 class App:
-    def __init__(self, mongo_client: MongoClient) -> None:
+    def __init__(self, mongo_client: MongoInterface) -> None:
         self.mongo_client = mongo_client
 
     async def get_graphs(self, request: GetGraphsRequest) -> GetGraphsResponse:
@@ -40,6 +41,12 @@ class App:
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
             )
+        except InvalidId:
+            return GetGraphsResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
+            )
 
     async def get_topic(self, request: GetTopicRequest) -> GetTopicResponse:
         try:
@@ -48,9 +55,9 @@ class App:
             )
             if topic is not None:
                 topic = MongoTrans.mongo_to_pydantic(MLTopic, topic)
-            topic = topic.model_dump()
-            topic.pop("context")
-            topic = Topic(**topic)
+                topic = topic.model_dump()
+                topic.pop("context")
+                topic = Topic(**topic)
             return GetTopicResponse(
                 request_id=request.request_id, message=topic, status=ResponseCodes.OK
             )
@@ -59,6 +66,12 @@ class App:
                 request_id=request.request_id,
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
+            )
+        except InvalidId:
+            return GetTopicResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
             )
 
     async def create_new_course(
@@ -72,19 +85,20 @@ class App:
             await self.mongo_client.add_graph_nodes(
                 [MongoTrans.pydantic_to_mongo(graph_node) for graph_node in graph_nodes]
             )
-
-            new_course = Graph(
+            users_graph_nodes = DefaultGraph.create_users_graph_nodes(graph_nodes)
+            graph = Graph(
                 graph_id=graph_id,
-                nodes=DefaultGraph.create_users_graph_nodes(graph_nodes),
+                nodes=users_graph_nodes,
                 title=DefaultGraph.default_title,
             )
-            await self.mongo_client.add_graph(MongoTrans.pydantic_to_mongo(new_course))
+            graph = MongoTrans.pydantic_to_mongo(graph)
+            await self.mongo_client.add_graph(graph)
 
             return CreateCourseResponse(
                 request_id=request.request_id,
                 status=ResponseCodes.OK,
                 message=UsersGraph(
-                    username=request.message.username, graph_id=new_course.graph_id
+                    username=request.message.username, graph_id=graph_id
                 ),
             )
         except PyMongoError:
@@ -99,12 +113,10 @@ class App:
         request: GetGraphsPreviewRequest,
     ) -> GetGraphsPreviewResponse:
         try:
-            graphs = (
-                await self.get_graphs(
-                    GetGraphsRequest(request_id="", message=request.message)
-                )
-            ).message
-            print(graphs)
+            graphs = await self.mongo_client.get_graphs(
+                [ObjectId(graph_item.graph_id) for graph_item in request.message]
+            )
+            graphs = [MongoTrans.mongo_to_pydantic(Graph, graph) for graph in graphs]
             graphs_previews: list[GraphPreview] = [
                 GraphPreview(
                     graph_id=graph.graph_id,
@@ -130,6 +142,12 @@ class App:
                 status=ResponseCodes.INTERNAL_ERROR,
                 message=None,
             )
+        except InvalidId:
+            return GetGraphsPreviewResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
+            )
 
     async def set_node_as_ended(
         self, request: SetNodeAsEndedRequest
@@ -137,11 +155,14 @@ class App:
         try:
             node_id = ObjectId(request.message.node_id)
             node = await self.mongo_client.get_node(node_id)
+            if node is None:
+                raise InvalidId
             graph_id = ObjectId(node["graph_id"])
-            await self.mongo_client.set_node_as_ended(node_id)
-            await self.mongo_client.recalculate_graph(graph_id)
+            await self.mongo_client.set_node_as_ended(node_id, graph_id)
             return SetNodeAsEndedResponse(
-                request_id=request.request_id, status=ResponseCodes.OK, message=None
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.OK,
             )
         except PyMongoError:
             return SetNodeAsEndedResponse(
@@ -149,3 +170,12 @@ class App:
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
             )
+        except InvalidId:
+            return SetNodeAsEndedResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
+            )
+
+    async def check_mongo_connection(self) -> bool:
+        return await self.mongo_client.check_connection()

@@ -1,9 +1,6 @@
-from fastapi import FastAPI
-from orchestrator.config import backend_config
-from orchestrator.lifespan import lifespan
 import uvicorn
-api_app = FastAPI(lifespan=lifespan)
 
+from orchestrator.config import backend_config
 
 if __name__ == "__main__":
     uvicorn.run(

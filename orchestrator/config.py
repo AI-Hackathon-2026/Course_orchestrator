@@ -14,6 +14,7 @@ class MongoDBConfig(BaseSettings):
     DATABASE: str = "courses"
     MAX_POOL_SIZE: int = 200
     MIN_POOL_SIZE: int = 50
+    HEALTH_CHECK_TIMEOUT: int = 1
 
 
 backend_config = BackendConfig()

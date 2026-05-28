@@ -160,19 +160,12 @@ class DefaultGraph:
                 node_id=str(ObjectId()),
                 graph_id=graph_id,
                 topic_id=topic.topic_id,
-                is_studied=False,
-                is_major=False,
-                prev_node_id=None,
                 next_node_id=None,
             )
             for topic in topics
         ]
-        for i, node in enumerate(graph_nodes):
-            if i != 0:
-                node.prev_node_id = graph_nodes[i - 1].node_id
-            if i != len(graph_nodes) - 1:
-                node.next_node_id = graph_nodes[i + 1].node_id
-
+        for i, node in enumerate(graph_nodes[:-1]):
+            node.next_node_id = graph_nodes[i + 1].node_id
         return graph_nodes
 
     @classmethod
@@ -187,8 +180,8 @@ class DefaultGraph:
                     node_id=node.node_id,
                     topic_id=node.topic_id,
                     title=cls.topics[i].title,
-                    is_studied=node.is_studied,
-                    is_major=node.is_major,
+                    is_studied=False,
+                    is_major=False,
                     next_node_id=node.next_node_id,
                 )
             )
