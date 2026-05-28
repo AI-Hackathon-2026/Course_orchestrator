@@ -17,9 +17,6 @@ class GraphNode(BaseModel):
     node_id: str
     graph_id: str
     topic_id: str
-    is_studied: bool
-    is_major: bool
-    prev_node_id: str | None
     next_node_id: str | None
 
 

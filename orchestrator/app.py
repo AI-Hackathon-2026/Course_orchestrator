@@ -72,19 +72,20 @@ class App:
             await self.mongo_client.add_graph_nodes(
                 [MongoTrans.pydantic_to_mongo(graph_node) for graph_node in graph_nodes]
             )
-
-            new_course = Graph(
+            users_graph_nodes = DefaultGraph.create_users_graph_nodes(graph_nodes)
+            graph = Graph(
                 graph_id=graph_id,
-                nodes=DefaultGraph.create_users_graph_nodes(graph_nodes),
+                nodes=users_graph_nodes,
                 title=DefaultGraph.default_title,
             )
-            await self.mongo_client.add_graph(MongoTrans.pydantic_to_mongo(new_course))
+            graph = MongoTrans.pydantic_to_mongo(graph)
+            await self.mongo_client.add_graph(graph)
 
             return CreateCourseResponse(
                 request_id=request.request_id,
                 status=ResponseCodes.OK,
                 message=UsersGraph(
-                    username=request.message.username, graph_id=new_course.graph_id
+                    username=request.message.username, graph_id=graph_id
                 ),
             )
         except PyMongoError:
@@ -99,12 +100,10 @@ class App:
         request: GetGraphsPreviewRequest,
     ) -> GetGraphsPreviewResponse:
         try:
-            graphs = (
-                await self.get_graphs(
-                    GetGraphsRequest(request_id="", message=request.message)
-                )
-            ).message
-            print(graphs)
+            graphs = await self.mongo_client.get_graphs(
+                [ObjectId(graph_item.graph_id) for graph_item in request.message]
+            )
+            graphs = [MongoTrans.mongo_to_pydantic(Graph, graph) for graph in graphs]
             graphs_previews: list[GraphPreview] = [
                 GraphPreview(
                     graph_id=graph.graph_id,
@@ -138,10 +137,11 @@ class App:
             node_id = ObjectId(request.message.node_id)
             node = await self.mongo_client.get_node(node_id)
             graph_id = ObjectId(node["graph_id"])
-            await self.mongo_client.set_node_as_ended(node_id)
-            await self.mongo_client.recalculate_graph(graph_id)
+            await self.mongo_client.set_node_as_ended(node_id, graph_id)
             return SetNodeAsEndedResponse(
-                request_id=request.request_id, status=ResponseCodes.OK, message=None
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.OK,
             )
         except PyMongoError:
             return SetNodeAsEndedResponse(

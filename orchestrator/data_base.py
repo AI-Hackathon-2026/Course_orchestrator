@@ -57,12 +57,13 @@ class MongoClient:
             {"_id": graph_id}, {"$set": {"nodes": graph_nodes}}
         )
 
-    async def set_node_as_ended(self, node_id: ObjectId):
-        nodes_collection = self.data_base["nodes"]
-        await nodes_collection.update_one(
-            {"_id": node_id}, {"$set": {"is_studied": True}}
+    async def set_node_as_ended(self, node_id: ObjectId, graph_id: ObjectId):
+        graphs_collection = self.data_base["graphs"]
+        await graphs_collection.update_one(
+            {"_id": graph_id, "nodes.node_id": node_id},
+            {"$set": {"nodes.$.is_studied": True}},
         )
 
-    async def get_node(self, node_id: ObjectId):
+    async def get_node(self, node_id: ObjectId) -> dict:
         nodes_collection = self.data_base["nodes"]
         return await nodes_collection.find_one({"_id": node_id})
