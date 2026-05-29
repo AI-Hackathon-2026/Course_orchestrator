@@ -1,8 +1,9 @@
+import asyncio
+
 from bson import ObjectId
 from pymongo import AsyncMongoClient
 
-from orchestrator.default_graph import DefaultGraph
-from orchestrator.graph import GraphNode
+from orchestrator.config import mongo_config
 
 
 class MongoClient:
@@ -30,33 +31,6 @@ class MongoClient:
     async def add_graph(self, graph: dict):
         await self.data_base["graphs"].insert_one(graph)
 
-    async def recalculate_graph(self, graph_id: ObjectId):
-        graph_nodes: list[dict] = (
-            await self.data_base["nodes"].find({"graph_id": str(graph_id)}).to_list()
-        )
-        nodes_mapping: dict[str, GraphNode] = {}
-
-        for node in graph_nodes:
-            node["node_id"] = str(node["_id"])
-            node.pop("_id")
-            nodes_mapping[node["node_id"]] = GraphNode(**node)
-        cur_node_id = ""
-        for node in graph_nodes:
-            if node["prev_node_id"] is None:
-                cur_node_id = node["node_id"]
-
-        sorted_graph_nodes: list[GraphNode] = []
-        while cur_node_id is not None:
-            cur_node = nodes_mapping[cur_node_id]
-            sorted_graph_nodes.append(cur_node)
-            cur_node_id = cur_node.next_node_id
-
-        graph_nodes = DefaultGraph.create_users_graph_nodes(sorted_graph_nodes)
-        graph_nodes = [node.model_dump() for node in graph_nodes]
-        await self.data_base["graphs"].update_one(
-            {"_id": graph_id}, {"$set": {"nodes": graph_nodes}}
-        )
-
     async def set_node_as_ended(self, node_id: ObjectId, graph_id: ObjectId):
         graphs_collection = self.data_base["graphs"]
         await graphs_collection.update_one(
@@ -67,3 +41,12 @@ class MongoClient:
     async def get_node(self, node_id: ObjectId) -> dict:
         nodes_collection = self.data_base["nodes"]
         return await nodes_collection.find_one({"_id": node_id})
+
+    async def check_connection(self) -> bool:
+        try:
+            await asyncio.wait_for(
+                self.client.server_info(), mongo_config.HEALTH_CHECK_TIMEOUT
+            )
+            return True
+        except Exception:
+            return False

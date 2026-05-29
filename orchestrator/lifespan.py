@@ -11,6 +11,7 @@ from orchestrator.mongo_init import mongo_init
 
 @asynccontextmanager
 async def lifespan(api_app: FastAPI):
+    api_app.state.is_ready = False
     mongo_init()
     mongo_connect = AsyncMongoClient(
         mongo_config.MONGO_URL,
@@ -20,6 +21,7 @@ async def lifespan(api_app: FastAPI):
     mongo_client = MongoClient(mongo_connection=mongo_connect)
     app = App(mongo_client=mongo_client)
     api_app.state.app = app
+    api_app.state.is_ready = True
     yield
     await mongo_connect.close()
 

@@ -149,3 +149,6 @@ class App:
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
             )
+
+    async def check_mongo_connection(self) -> bool:
+        return await self.mongo_client.check_connection()
