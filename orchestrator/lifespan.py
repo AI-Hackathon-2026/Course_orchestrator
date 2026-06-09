@@ -5,8 +5,8 @@ from pymongo import AsyncMongoClient
 
 from orchestrator.app import App
 from orchestrator.config import mongo_config
-from orchestrator.data_base import MongoClient
-from orchestrator.mongo_init import mongo_init
+from orchestrator.mongo.mongo_client import MongoClient
+from orchestrator.mongo.mongo_init import mongo_init
 
 
 @asynccontextmanager

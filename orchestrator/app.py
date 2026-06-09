@@ -1,7 +1,6 @@
 from bson import ObjectId
 from pymongo.errors import PyMongoError
 
-from orchestrator.data_base import MongoClient
 from orchestrator.default_graph import DefaultGraph
 from orchestrator.dto import (
     CreateCourseRequest,
@@ -18,11 +17,12 @@ from orchestrator.dto import (
     UsersGraph,
 )
 from orchestrator.graph import Graph, GraphPreview, MLTopic, Topic
-from orchestrator.mongo_trans import MongoTrans
+from orchestrator.mongo.mongo_interface import MongoInterface
+from orchestrator.mongo.mongo_trans import MongoTrans
 
 
 class App:
-    def __init__(self, mongo_client: MongoClient) -> None:
+    def __init__(self, mongo_client: MongoInterface) -> None:
         self.mongo_client = mongo_client
 
     async def get_graphs(self, request: GetGraphsRequest) -> GetGraphsResponse:

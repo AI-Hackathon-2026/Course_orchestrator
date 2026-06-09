@@ -4,9 +4,10 @@ from bson import ObjectId
 from pymongo import AsyncMongoClient
 
 from orchestrator.config import mongo_config
+from orchestrator.mongo.mongo_interface import MongoInterface
 
 
-class MongoClient:
+class MongoClient(MongoInterface):
     def __init__(self, mongo_connection: AsyncMongoClient):
         self.client = mongo_connection
         self.data_base = self.client["courses"]
@@ -38,7 +39,7 @@ class MongoClient:
             {"$set": {"nodes.$.is_studied": True}},
         )
 
-    async def get_node(self, node_id: ObjectId) -> dict:
+    async def get_node(self, node_id: ObjectId) -> dict | None:
         nodes_collection = self.data_base["nodes"]
         return await nodes_collection.find_one({"_id": node_id})
 

@@ -2,7 +2,7 @@ from pymongo import MongoClient
 
 from orchestrator.config import mongo_config
 from orchestrator.default_graph import DefaultGraph
-from orchestrator.mongo_trans import MongoTrans
+from orchestrator.mongo.mongo_trans import MongoTrans
 
 
 def mongo_init():
