@@ -38,7 +38,7 @@ class MongoMock(MongoInterface):
                 ],
             }
         ]
-        fake_bd = {"topics": topics, "graph_nodes": graph_nodes, "graphs": graphs}
+        fake_bd = {"topics": topics, "nodes": graph_nodes, "graphs": graphs}
         self.fake_bd = fake_bd
 
     async def get_graphs(self, graphs_ids: list[ObjectId]) -> list[dict]:
@@ -46,17 +46,17 @@ class MongoMock(MongoInterface):
         for graph_id in graphs_ids:
             for graph in self.fake_bd["graphs"]:
                 if graph["_id"] == graph_id:
-                    result.append(graph)
+                    result.append(graph.copy())
         return result
 
     async def get_topic(self, topic_id: ObjectId) -> dict | None:
         for topic in self.fake_bd["topics"]:
             if topic["_id"] == topic_id:
-                return topic
+                return topic.copy()
         return None
 
     async def get_all_topics(self) -> list[dict]:
-        return self.fake_bd["topics"]
+        return self.fake_bd["topics"].copy()
 
     async def add_graph_nodes(self, graph_nodes: list[dict]):
         self.fake_bd["graph_nodes"].extend(graph_nodes)
@@ -75,7 +75,7 @@ class MongoMock(MongoInterface):
     async def get_node(self, node_id: ObjectId) -> dict | None:
         for node in self.fake_bd["nodes"]:
             if node["_id"] == node_id:
-                return node
+                return node.copy()
         return None
 
     async def check_connection(self) -> bool:

@@ -1,4 +1,5 @@
 from bson import ObjectId
+from bson.errors import InvalidId
 from pymongo.errors import PyMongoError
 
 from orchestrator.default_graph import DefaultGraph
@@ -40,6 +41,12 @@ class App:
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
             )
+        except InvalidId:
+            return GetGraphsResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
+            )
 
     async def get_topic(self, request: GetTopicRequest) -> GetTopicResponse:
         try:
@@ -59,6 +66,12 @@ class App:
                 request_id=request.request_id,
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
+            )
+        except InvalidId:
+            return GetTopicResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
             )
 
     async def create_new_course(
@@ -129,6 +142,12 @@ class App:
                 status=ResponseCodes.INTERNAL_ERROR,
                 message=None,
             )
+        except InvalidId:
+            return GetGraphsPreviewResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
+            )
 
     async def set_node_as_ended(
         self, request: SetNodeAsEndedRequest
@@ -148,6 +167,12 @@ class App:
                 request_id=request.request_id,
                 message=None,
                 status=ResponseCodes.INTERNAL_ERROR,
+            )
+        except InvalidId:
+            return SetNodeAsEndedResponse(
+                request_id=request.request_id,
+                message=None,
+                status=ResponseCodes.BAD_REQUEST,
             )
 
     async def check_mongo_connection(self) -> bool:

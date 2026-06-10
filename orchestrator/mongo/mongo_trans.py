@@ -35,7 +35,7 @@ class MongoTrans:
             id_name = "topic_id"
         if model_class is Graph:
             for node in mongo_dict["nodes"]:
-                node["node_id"] = str(node["node_id"])
+                node["node_id"] = str(node["_id"])
         mongo_dict[id_name] = str(mongo_dict["_id"])
         mongo_dict.pop("_id")
         return model_class(**mongo_dict)
