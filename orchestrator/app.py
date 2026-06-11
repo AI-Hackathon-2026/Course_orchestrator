@@ -55,9 +55,9 @@ class App:
             )
             if topic is not None:
                 topic = MongoTrans.mongo_to_pydantic(MLTopic, topic)
-            topic = topic.model_dump()
-            topic.pop("context")
-            topic = Topic(**topic)
+                topic = topic.model_dump()
+                topic.pop("context")
+                topic = Topic(**topic)
             return GetTopicResponse(
                 request_id=request.request_id, message=topic, status=ResponseCodes.OK
             )
@@ -155,6 +155,8 @@ class App:
         try:
             node_id = ObjectId(request.message.node_id)
             node = await self.mongo_client.get_node(node_id)
+            if node is None:
+                raise InvalidId
             graph_id = ObjectId(node["graph_id"])
             await self.mongo_client.set_node_as_ended(node_id, graph_id)
             return SetNodeAsEndedResponse(

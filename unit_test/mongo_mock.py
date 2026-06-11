@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from bson import ObjectId
 
 from orchestrator.mongo.mongo_interface import MongoInterface
@@ -10,6 +12,7 @@ class MongoMock(MongoInterface):
                 "_id": ObjectId("507f1f77bcf86cd799439011"),
                 "title": "Основы Python",
                 "topic_content": "Переменные, циклы, функции, ООП, исключения.",
+                "context": "бррр",
             }
         ]
 
@@ -46,25 +49,29 @@ class MongoMock(MongoInterface):
         for graph_id in graphs_ids:
             for graph in self.fake_bd["graphs"]:
                 if graph["_id"] == graph_id:
-                    result.append(graph.copy())
+                    result.append(deepcopy(graph))
         return result
 
     async def get_topic(self, topic_id: ObjectId) -> dict | None:
         for topic in self.fake_bd["topics"]:
             if topic["_id"] == topic_id:
-                return topic.copy()
+                return deepcopy(topic)
         return None
 
     async def get_all_topics(self) -> list[dict]:
-        return self.fake_bd["topics"].copy()
+        return deepcopy(self.fake_bd["topics"])
 
     async def add_graph_nodes(self, graph_nodes: list[dict]):
-        self.fake_bd["graph_nodes"].extend(graph_nodes)
+        self.fake_bd["nodes"].extend(deepcopy(graph_nodes))
 
     async def add_graph(self, graph: dict):
-        self.fake_bd["graphs"].extend(graph)
+        self.fake_bd["graphs"].append(deepcopy(graph))
 
     async def set_node_as_ended(self, node_id: ObjectId, graph_id: ObjectId):
+        for node in self.fake_bd["nodes"]:
+            if node["_id"] == node_id:
+                node["is_studied"] = True
+
         for graph in self.fake_bd["graphs"]:
             if graph["_id"] == graph_id:
                 for node in graph["nodes"]:
@@ -75,7 +82,7 @@ class MongoMock(MongoInterface):
     async def get_node(self, node_id: ObjectId) -> dict | None:
         for node in self.fake_bd["nodes"]:
             if node["_id"] == node_id:
-                return node.copy()
+                return deepcopy(node)
         return None
 
     async def check_connection(self) -> bool:
