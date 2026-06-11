@@ -16,6 +16,9 @@ class MongoTrans:
         else:
             id_name = "topic_id"
         model = model.model_dump()
+        if model_class is Graph:
+            for node in model["nodes"]:
+                node["node_id"] = ObjectId(node["node_id"])
         model["_id"] = ObjectId(model[id_name])
         model.pop(id_name)
         return model
@@ -30,6 +33,9 @@ class MongoTrans:
             id_name = "node_id"
         else:
             id_name = "topic_id"
+        if model_class is Graph:
+            for node in mongo_dict["nodes"]:
+                node["node_id"] = str(node["_id"])
         mongo_dict[id_name] = str(mongo_dict["_id"])
         mongo_dict.pop("_id")
         return model_class(**mongo_dict)
